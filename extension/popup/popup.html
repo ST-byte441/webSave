@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>webSave</title>
+  <link rel="stylesheet" href="popup.css">
+  <script src="../vendor/browser-polyfill.js"></script>
+  <script type="module" src="popup.js"></script>
+</head>
+<body>
+  <form id="options">
+    <fieldset>
+      <legend>Save</legend>
+      <label><input type="radio" name="mode" value="single" checked> This page</label>
+      <label><input type="radio" name="mode" value="crawl"> This page + linked pages</label>
+    </fieldset>
+    <fieldset id="crawl-options" disabled>
+      <legend>Linked pages</legend>
+      <label>Depth <input type="number" name="depth" min="1" max="3" value="1"></label>
+      <label>Max pages <input type="number" name="maxPages" min="1" max="100" value="20"></label>
+      <label>Scope
+        <select name="scope">
+          <option value="prefix" selected>Same site and path prefix</option>
+          <option value="domain">Same domain</option>
+        </select>
+      </label>
+    </fieldset>
+    <label><input type="checkbox" name="report" checked> Include capture report</label>
+    <button type="submit" id="save" disabled>Save as PDF</button>
+    <p id="note" role="status"></p>
+  </form>
+</body>
+</html>

@@ -1,0 +1,36 @@
+body {
+  width: 18rem;
+  margin: 0;
+  padding: 0.75rem;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  color-scheme: light dark;
+}
+
+fieldset {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+fieldset:disabled {
+  opacity: 0.5;
+}
+
+input[type="number"] {
+  width: 4rem;
+}
+
+button {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  font: inherit;
+}
+
+#note {
+  margin: 0.5rem 0 0;
+  color: #b35c00;
+}

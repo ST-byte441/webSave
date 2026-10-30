@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "webSave",
+  "version": "0.1.0",
+  "description": "Save a web page, or a page and the pages it links to, as one clean PDF.",
+  "action": {
+    "default_title": "Save as PDF",
+    "default_popup": "popup/popup.html"
+  },
+  "permissions": ["activeTab", "scripting", "tabs"],
+  "optional_host_permissions": ["<all_urls>"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "websave@st-byte441.github.io",
+      "strict_min_version": "128.0"
+    }
+  }
+}
