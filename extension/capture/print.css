@@ -1,0 +1,92 @@
+@page {
+  margin: 18mm 16mm;
+}
+
+body.document {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1rem;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #111;
+  background: #fff;
+}
+
+.document h1,
+.document h2,
+.document h3 {
+  font-family: system-ui, sans-serif;
+  line-height: 1.25;
+  break-after: avoid;
+}
+
+.document .source {
+  font-family: system-ui, sans-serif;
+  font-size: 9pt;
+  color: #555;
+  word-break: break-all;
+}
+
+.document .title-page {
+  padding-top: 30vh;
+  text-align: center;
+  break-after: page;
+}
+
+.document .toc {
+  break-after: page;
+}
+
+.document .page + .page,
+.document .report {
+  break-before: page;
+}
+
+.document img,
+.document svg,
+.document video {
+  max-width: 100%;
+  height: auto;
+  break-inside: avoid;
+}
+
+.document pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 9pt;
+  background: #f4f4f4;
+  padding: 0.5rem;
+}
+
+.document table {
+  border-collapse: collapse;
+  max-width: 100%;
+}
+
+.document th,
+.document td {
+  border: 1px solid #ccc;
+  padding: 0.25rem 0.5rem;
+}
+
+.document tr {
+  break-inside: avoid;
+}
+
+.document a {
+  color: #1a4fa0;
+}
+
+.document .img-missing {
+  border: 1px dashed #999;
+  padding: 0.5rem;
+  font-family: system-ui, sans-serif;
+  font-size: 9pt;
+  color: #555;
+  break-inside: avoid;
+}
+
+.document .img-url {
+  word-break: break-all;
+}
