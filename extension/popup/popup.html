@@ -5,6 +5,7 @@
   <title>webSave</title>
   <link rel="stylesheet" href="popup.css">
   <script src="../vendor/browser-polyfill.js"></script>
+  <script src="../vendor/Readability.js"></script>
   <script type="module" src="popup.js"></script>
 </head>
 <body>
@@ -13,6 +14,7 @@
       <legend>Save</legend>
       <label><input type="radio" name="mode" value="single" checked> This page</label>
       <label><input type="radio" name="mode" value="crawl"> This page + linked pages</label>
+      <label><input type="radio" name="mode" value="collect"> Pick pages myself</label>
     </fieldset>
     <fieldset id="crawl-options" disabled>
       <legend>Linked pages</legend>
@@ -25,8 +27,22 @@
         </select>
       </label>
     </fieldset>
+    <fieldset id="collection" hidden>
+      <legend id="count">0 pages saved</legend>
+      <ol id="pages"></ol>
+    </fieldset>
     <label><input type="checkbox" name="report" checked> Include capture report</label>
     <button type="submit" id="save" disabled>Save as PDF</button>
+    <div id="collection-actions" hidden>
+      <button type="button" id="add" disabled>Add this page</button>
+      <button type="button" id="save-collection" class="primary" disabled>Save PDF (0 pages)</button>
+      <button type="button" id="discard" class="link">Discard all…</button>
+      <div id="confirm" hidden>
+        <span id="confirm-text"></span>
+        <button type="button" id="confirm-discard">Discard</button>
+        <button type="button" id="confirm-keep">Keep</button>
+      </div>
+    </div>
     <p id="note" role="status"></p>
   </form>
 </body>

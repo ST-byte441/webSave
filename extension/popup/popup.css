@@ -7,6 +7,10 @@ body {
   color-scheme: light dark;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 fieldset {
   display: grid;
   gap: 0.4rem;
@@ -33,4 +37,66 @@ button {
 #note {
   margin: 0.5rem 0 0;
   color: #b35c00;
+}
+
+#pages {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+#pages li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+#pages li span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#pages li button {
+  width: auto;
+  margin: 0;
+  padding: 0 0.3rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+button.primary {
+  background: #2563eb;
+  color: #fff;
+  border: 1px solid #2563eb;
+  border-radius: 4px;
+}
+
+button.primary:disabled {
+  opacity: 0.5;
+}
+
+button.link {
+  border: none;
+  background: none;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+#confirm {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+#confirm span {
+  flex: 1;
+}
+
+#confirm button {
+  width: auto;
+  margin: 0;
 }
