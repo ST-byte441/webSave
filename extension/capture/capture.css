@@ -18,6 +18,10 @@ body {
   color: #b00020;
 }
 
+#warning {
+  color: #b35c00;
+}
+
 #progress button {
   margin-right: 0.5rem;
   padding: 0.4rem 0.9rem;

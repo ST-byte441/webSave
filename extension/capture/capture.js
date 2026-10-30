@@ -1,6 +1,7 @@
 import { renderDocument } from '../lib/assembler.js';
 import { captureTab, createPageCapturer, renderInBackgroundTab } from '../lib/capturer.js';
 import { cleanDocument } from '../lib/cleaner.js';
+import { loadPages } from '../lib/collection.js';
 import { crawl } from '../lib/crawler.js';
 import { embedImages } from '../lib/images.js';
 
@@ -12,6 +13,7 @@ const options = {
   maxPages: Number(params.get('maxPages')),
   scope: params.get('scope'),
   includeReport: params.get('report') === '1',
+  hasAllSitesAccess: params.get('access') !== '0',
 };
 
 const byId = (id) => document.getElementById(id);
@@ -52,11 +54,18 @@ async function waitForRender() {
 
 async function run() {
   const capturedAt = new Date();
-  setStatus('Capturing the current page…');
-  const start = await captureTab(browser, options.tabId, cleanDocument);
-
-  let pages = [start];
+  let pages;
   let failures = [];
+  if (options.mode === 'collection') {
+    setStatus('Loading saved pages…');
+    pages = await loadPages(browser.storage.session);
+    if (pages.length === 0) throw new Error('The collection is empty.');
+    if (!options.hasAllSitesAccess) byId('warning').hidden = false;
+  } else {
+    setStatus('Capturing the current page…');
+    pages = [await captureTab(browser, options.tabId, cleanDocument)];
+  }
+
   if (options.mode === 'crawl') {
     const capturePage = createPageCapturer({
       fetchFn: credentialedFetch,
@@ -64,7 +73,7 @@ async function run() {
       clean: cleanDocument,
     });
     const result = await crawl({
-      start,
+      start: pages[0],
       options,
       capturePage,
       signal: controller.signal,
