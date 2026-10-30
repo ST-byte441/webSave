@@ -1,0 +1,16 @@
+{
+  "name": "websave",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "vendor": "node scripts/vendor.mjs"
+  },
+  "devDependencies": {
+    "@mozilla/readability": "0.5.0",
+    "jsdom": "25.0.1",
+    "vitest": "2.1.8",
+    "webextension-polyfill": "0.12.0"
+  }
+}
