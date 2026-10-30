@@ -3,11 +3,12 @@
   "name": "webSave",
   "version": "0.1.0",
   "description": "Save a web page, or a page and the pages it links to, as one clean PDF.",
+  "minimum_chrome_version": "112",
   "action": {
     "default_title": "Save as PDF",
     "default_popup": "popup/popup.html"
   },
-  "permissions": ["activeTab", "scripting", "tabs"],
+  "permissions": ["activeTab", "scripting", "tabs", "storage"],
   "optional_host_permissions": ["<all_urls>"],
   "browser_specific_settings": {
     "gecko": {
