@@ -13,7 +13,6 @@ const options = {
   maxPages: Number(params.get('maxPages')),
   scope: params.get('scope'),
   includeReport: params.get('report') === '1',
-  hasAllSitesAccess: params.get('access') !== '0',
 };
 
 const byId = (id) => document.getElementById(id);
@@ -47,6 +46,22 @@ function askAfterCancel(pageCount) {
   });
 }
 
+const ALL_SITES = { origins: ['<all_urls>'] };
+
+async function ensureAllSitesAccess() {
+  if (await browser.permissions.contains(ALL_SITES)) return true;
+  byId('cancel').hidden = true;
+  byId('access').hidden = false;
+  const granted = await new Promise((resolve) => {
+    // The request must be the first browser call in the click handler.
+    byId('allow-access').onclick = () => browser.permissions.request(ALL_SITES).then(resolve, () => resolve(false));
+    byId('skip-access').onclick = () => resolve(false);
+  });
+  byId('access').hidden = true;
+  byId('cancel').hidden = false;
+  return granted;
+}
+
 async function waitForRender() {
   await document.fonts.ready;
   await Promise.all([...document.images].map((img) => img.decode().catch(() => {})));
@@ -60,7 +75,7 @@ async function run() {
     setStatus('Loading saved pages…');
     pages = await loadPages(browser.storage.session);
     if (pages.length === 0) throw new Error('The collection is empty.');
-    if (!options.hasAllSitesAccess) byId('warning').hidden = false;
+    if (!(await ensureAllSitesAccess())) byId('warning').hidden = false;
   } else {
     setStatus('Capturing the current page…');
     pages = [await captureTab(browser, options.tabId, cleanDocument)];

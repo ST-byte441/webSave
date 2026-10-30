@@ -36,4 +36,4 @@ Run this in both Chrome and Firefox before calling a change done:
 12. **Save PDF (2 pages)**. The PDF has a table of contents and two sections in the order added. Reopen the popup: the 2 pages are still there.
 13. **Discard all…** → **Keep** leaves the list; **Discard all…** → **Discard** empties it and clears the badge.
 14. Add a page, quit and reopen the browser. The collection is empty.
-15. Decline the all-sites prompt on Save PDF. The capture tab shows the missing-images warning and the PDF is still produced.
+15. With all-sites access not yet granted, press **Save PDF**. The capture tab asks for access. **Continue without** shows the missing-images warning and still produces the PDF; **Allow access** shows the browser prompt and, once granted, the PDF has its images.

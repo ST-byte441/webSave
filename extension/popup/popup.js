@@ -16,6 +16,7 @@ const clamp = (value, min, max, fallback) => {
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
 };
 const pagesLabel = (n) => (n === 1 ? '1 page' : `${n} pages`);
+const DUPLICATE_NOTE = 'This page is already in the list';
 
 const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
 const restricted = !tab?.url || isRestrictedUrl(tab.url);
@@ -49,7 +50,8 @@ async function renderCollection() {
   byId('discard').disabled = busy || entries.length === 0;
   const alreadyAdded = !restricted && await hasPage(area, tab.url);
   byId('add').disabled = busy || restricted || alreadyAdded;
-  if (alreadyAdded) note.textContent = 'This page is already in the list';
+  if (alreadyAdded) note.textContent = DUPLICATE_NOTE;
+  else if (note.textContent === DUPLICATE_NOTE) note.textContent = '';
   await browser.action.setBadgeText({ text: badgeText(entries.length) });
   return entries;
 }
@@ -72,6 +74,7 @@ function showMode() {
   save.hidden = collecting;
   byId('collection').hidden = !collecting;
   byId('collection-actions').hidden = !collecting;
+  if (!collecting && note.textContent === DUPLICATE_NOTE) note.textContent = '';
 }
 
 if ((await renderCollection()).length > 0) form.elements.mode.value = 'collect';
@@ -87,7 +90,7 @@ byId('add').addEventListener('click', () => {
       await addPage(area, await captureTab(browser, tab.id, cleanDocument));
     } catch (error) {
       if (error instanceof CollectionError) {
-        note.textContent = error.reason === 'full' ? 'Collection is full — save or remove pages' : 'This page is already in the list';
+        note.textContent = error.reason === 'full' ? 'Collection is full — save or remove pages' : DUPLICATE_NOTE;
       } else {
         note.textContent = `Could not capture this page: ${error instanceof CaptureError ? error.reason : error.message}`;
       }
@@ -111,19 +114,13 @@ byId('confirm-discard').addEventListener('click', () => {
   update(() => clearPages(area));
 });
 
-byId('save-collection').addEventListener('click', () => {
-  const report = form.elements.report.checked ? '1' : '0';
-  // This must be the first browser call in the handler: Firefox only shows
-  // the permission prompt while it is still handling the click.
-  browser.permissions.request({ origins: ['<all_urls>'] })
-    .then((granted) => openCollection(report, granted), () => openCollection(report, false));
-});
-
-async function openCollection(report, granted) {
-  const params = new URLSearchParams({ mode: 'collection', report, access: granted ? '1' : '0' });
+// The capture tab asks for all-sites access itself: Firefox can close the
+// popup when the permission prompt appears, which would lose this click.
+byId('save-collection').addEventListener('click', async () => {
+  const params = new URLSearchParams({ mode: 'collection', report: form.elements.report.checked ? '1' : '0' });
   await browser.tabs.create({ url: browser.runtime.getURL(`capture/capture.html?${params}`), index: tab.index + 1 });
   window.close();
-}
+});
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();
