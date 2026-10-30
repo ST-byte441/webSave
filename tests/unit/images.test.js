@@ -4,8 +4,8 @@ import { embedImages, pickImageSource } from '../../extension/lib/images.js';
 const imgFrom = (html) => new DOMParser().parseFromString(html, 'text/html').querySelector('img');
 const page = (url, contentHtml) => ({ url, title: url, contentHtml });
 
-function imageResponse(size = 100, type = 'image/png', status = 200) {
-  return { ok: status < 400, status, headers: new Map([['content-type', type]]), blob: async () => ({ size, type }) };
+function imageResponse(size = 100, type = 'image/png', status = 200, extraHeaders = []) {
+  return { ok: status < 400, status, headers: new Map([['content-type', type], ...extraHeaders]), blob: async () => ({ size, type }) };
 }
 
 function fakeObjectUrls() {
@@ -126,5 +126,27 @@ describe('embedImages', () => {
       signal: controller.signal,
     });
     expect(result.failures[0].reason).toBe('cancelled');
+  });
+
+  it('times out a stalled image download', async () => {
+    const hang = (url, { signal }) => new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('aborted'))));
+    const result = await embedImages([page('https://x.com/1', '<img src="https://x.com/slow.png">')], {
+      fetchFn: hang,
+      createObjectURL: fakeObjectUrls(),
+      timeoutMs: 10,
+    });
+    expect(result.failures[0].reason).toBe('timeout');
+  });
+
+  it('rejects an oversized image from its content-length without downloading the body', async () => {
+    const response = imageResponse(0, 'image/png', 200, [['content-length', '5000']]);
+    response.blob = vi.fn(async () => ({ size: 5000 }));
+    const result = await embedImages([page('https://x.com/1', '<img src="https://x.com/big.png">')], {
+      fetchFn: async () => response,
+      createObjectURL: fakeObjectUrls(),
+      maxImageBytes: 1000,
+    });
+    expect(result.failures[0].reason).toContain('too large');
+    expect(response.blob).not.toHaveBeenCalled();
   });
 });

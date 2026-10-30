@@ -51,6 +51,7 @@ export async function embedImages(pages, {
   maxImageBytes = 10 * MB,
   maxTotalBytes = 150 * MB,
   concurrency = 4,
+  timeoutMs = 20000,
 }) {
   const limit = createLimiter(concurrency);
   const downloads = new Map();
@@ -60,12 +61,23 @@ export async function embedImages(pages, {
 
   async function download(url) {
     if (signal?.aborted) return { error: 'cancelled' };
+    const controller = new AbortController();
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeoutMs);
+    const onAbort = () => controller.abort();
+    signal?.addEventListener('abort', onAbort);
     try {
-      const response = await fetchFn(url, { signal });
+      const response = await fetchFn(url, { signal: controller.signal });
       if (!response.ok) return { error: `HTTP ${response.status}` };
       const type = response.headers.get('content-type') ?? '';
       if (type && !type.startsWith('image/') && !type.startsWith('application/octet-stream')) {
         return { error: `not an image (${type})` };
+      }
+      if (Number(response.headers.get('content-length')) > maxImageBytes) {
+        return { error: `too large (over ${formatMb(maxImageBytes)})` };
       }
       const blob = await response.blob();
       if (blob.size > maxImageBytes) return { error: `too large (over ${formatMb(maxImageBytes)})` };
@@ -76,7 +88,11 @@ export async function embedImages(pages, {
       totalBytes += blob.size;
       return { objectUrl: createObjectURL(blob) };
     } catch (error) {
+      if (timedOut) return { error: 'timeout' };
       return { error: signal?.aborted ? 'cancelled' : error.message || 'download failed' };
+    } finally {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
     }
   }
 

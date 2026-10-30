@@ -135,4 +135,27 @@ describe('crawl', () => {
     await crawl({ start, options: OPTIONS, capturePage, sleep: noSleep, onProgress });
     expect(onProgress).toHaveBeenLastCalledWith({ done: 3, total: 3 });
   });
+
+  it('stops promptly when cancelled, without waiting out the queue', async () => {
+    const controller = new AbortController();
+    const links = Array.from({ length: 20 }, (_, i) => `${BASE}p${i}`);
+    const capturePage = async (url) => {
+      controller.abort();
+      return makePage(url);
+    };
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const startedAt = Date.now();
+    const result = await crawl({ start: makePage(`${BASE}intro`, links), options: OPTIONS, capturePage, signal: controller.signal, sleep, delayMs: 50 });
+    expect(Date.now() - startedAt).toBeLessThan(300);
+    expect(result.cancelled).toBe(true);
+  });
+
+  it('skips logout and destructive action links and reports them', async () => {
+    const links = [`${BASE}logout`, `${BASE}sign-out`, `${BASE}item?action=delete`, `${BASE}unsubscribe/42`, `${BASE}a`];
+    const { calls, capturePage } = fakeSite({ [`${BASE}a`]: {} });
+    const result = await crawl({ start: makePage(`${BASE}intro`, links), options: OPTIONS, capturePage, sleep: noSleep });
+    expect(calls).toEqual([`${BASE}a`]);
+    expect(result.failures.map((f) => f.url)).toEqual(links.slice(0, 4));
+    expect(result.failures[0].reason).toBe('skipped: looks like an action link');
+  });
 });

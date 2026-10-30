@@ -68,4 +68,10 @@ describe('absolutizeUrls', () => {
     expect(doc.getElementById('mail').getAttribute('href')).toBe('mailto:a@b.com');
     expect(doc.getElementById('inline').getAttribute('src')).toBe('data:image/png;base64,AAAA');
   });
+
+  it('resolves relative URLs against the page base element', () => {
+    const page3 = cleanDocument(parse('<html><head><base href="/docs/"></head><body><main><a href="intro">Intro</a><img src="pic.png"></main></body></html>'), 'https://site.com/app/page');
+    expect(page3.contentHtml).toContain('href="https://site.com/docs/intro"');
+    expect(page3.contentHtml).toContain('src="https://site.com/docs/pic.png"');
+  });
 });

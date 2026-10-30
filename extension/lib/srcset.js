@@ -1,12 +1,26 @@
+// Follows the HTML srcset rules closely enough for real pages: a URL is a run
+// of non-whitespace (so CDN transforms like w_400,h_300 keep their commas),
+// and a comma after the descriptor ends the candidate.
 export function parseSrcset(srcset) {
-  return srcset
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .map((part) => {
-      const [url, descriptor = ''] = part.split(/\s+/);
-      return { url, descriptor };
-    });
+  const candidates = [];
+  let i = 0;
+  while (i < srcset.length) {
+    while (i < srcset.length && /[\s,]/.test(srcset[i])) i++;
+    if (i >= srcset.length) break;
+    let start = i;
+    while (i < srcset.length && !/\s/.test(srcset[i])) i++;
+    let url = srcset.slice(start, i);
+    let descriptor = '';
+    if (url.endsWith(',')) {
+      url = url.replace(/,+$/, '');
+    } else {
+      start = i;
+      while (i < srcset.length && srcset[i] !== ',') i++;
+      descriptor = srcset.slice(start, i).trim();
+    }
+    candidates.push({ url, descriptor });
+  }
+  return candidates;
 }
 
 export function formatSrcset(candidates) {

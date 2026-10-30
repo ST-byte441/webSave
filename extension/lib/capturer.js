@@ -77,6 +77,7 @@ export function createPageCapturer({ fetchFn, renderInTab, clean, timeoutMs = FE
     let method = 'fetch';
     if (page.textLength < MIN_TEXT_LENGTH) {
       const rendered = await renderInTab(url, signal);
+      if (!/^https?:/.test(rendered.url)) throw new CaptureError('background tab did not load');
       page = checkAndClean(url, rendered.url, rendered.html, clean);
       method = 'background-tab';
     }
@@ -107,8 +108,8 @@ function waitForTabComplete(api, tabId, timeoutMs, signal) {
       if (error) reject(error);
       else resolve();
     };
-    const onUpdated = (id, info) => {
-      if (id === tabId && info.status === 'complete') finish();
+    const onUpdated = (id, info, tab) => {
+      if (id === tabId && info.status === 'complete' && tab?.url !== 'about:blank') finish();
     };
     const onAbort = () => finish(new CaptureError('cancelled'));
     const timer = setTimeout(() => finish(new CaptureError('timeout')), timeoutMs);

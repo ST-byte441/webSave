@@ -51,7 +51,8 @@ function stripTrackers(html) {
 }
 
 export function cleanDocument(doc, url) {
-  absolutizeUrls(doc, url);
+  const base = doc.querySelector('base[href]');
+  absolutizeUrls(doc, base ? resolve(base.getAttribute('href'), url) : url);
   const article = new globalThis.Readability(doc.cloneNode(true)).parse();
   const articleText = article?.textContent?.trim() ?? '';
   const useArticle = articleText.length >= MIN_TEXT_LENGTH;

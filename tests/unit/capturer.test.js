@@ -106,6 +106,15 @@ describe('createPageCapturer', () => {
     expect(await reasonOf(make(hang, 10)('https://x.com/slow'))).toBe('timeout');
   });
 
+  it('rejects a background tab that never left about:blank', async () => {
+    const capture = createPageCapturer({
+      fetchFn: async () => htmlResponse('<div id="root"></div>'),
+      renderInTab: async () => ({ url: 'about:blank', html: `<title>about:blank</title>${LONG}` }),
+      clean: fakeClean,
+    });
+    expect(await reasonOf(capture('https://x.com/app'))).toBe('background tab did not load');
+  });
+
   it('reports network errors', async () => {
     expect(await reasonOf(make(async () => { throw new Error('boom'); })('https://x.com/a'))).toBe('network error: boom');
   });
@@ -114,9 +123,10 @@ describe('createPageCapturer', () => {
 function fakeTabsApi({ completes = true } = {}) {
   const listeners = new Set();
   return {
+    fire: (...args) => listeners.forEach((listener) => listener(...args)),
     tabs: {
       create: vi.fn(async () => {
-        if (completes) setTimeout(() => listeners.forEach((listener) => listener(7, { status: 'complete' })), 0);
+        if (completes) setTimeout(() => listeners.forEach((listener) => listener(7, { status: 'complete' }, { id: 7, url: 'https://x.com/app' })), 0);
         return { id: 7 };
       }),
       get: vi.fn(async () => ({ id: 7, status: 'loading', url: 'about:blank' })),
@@ -148,6 +158,26 @@ describe('renderInBackgroundTab', () => {
     expect(api.tabs.create).toHaveBeenCalledWith({ url: 'https://x.com/app', active: false });
     expect(result.url).toBe('https://x.com/live');
     expect(api.tabs.remove).toHaveBeenCalledWith(7);
+  });
+
+  it('ignores the initial about:blank load and waits for the real page', async () => {
+    const api = fakeTabsApi({ completes: false });
+    let realLoaded = false;
+    api.tabs.create = vi.fn(async () => {
+      setTimeout(() => api.fire(7, { status: 'complete' }, { id: 7, url: 'about:blank' }), 0);
+      setTimeout(() => {
+        realLoaded = true;
+        api.fire(7, { status: 'complete' }, { id: 7, url: 'https://x.com/app' });
+      }, 20);
+      return { id: 7 };
+    });
+    const readAfterLoad = [];
+    api.scripting.executeScript = vi.fn(async () => {
+      readAfterLoad.push(realLoaded);
+      return [{ result: { html: '<p>x</p>', url: 'https://x.com/app' } }];
+    });
+    await renderInBackgroundTab(api, 'https://x.com/app', { settleMs: 0 });
+    expect(readAfterLoad).toEqual([true]);
   });
 
   it('times out and still closes the tab', async () => {

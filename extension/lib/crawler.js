@@ -7,6 +7,14 @@ const FILE_EXTENSIONS = [
   '.csv', '.xls', '.xlsx', '.doc', '.docx', '.ppt', '.pptx',
 ];
 
+// Links a logged-in crawl must never follow: signing out or triggering an action.
+const ACTION_PATTERN = /(^|[/?&=._-])(log-?out|log_out|logoff|sign-?out|sign_out|signoff|delete|destroy|unsubscribe|revoke)([/?&=._-]|$)/i;
+
+export function isActionLink(url) {
+  const { pathname, search } = new URL(url);
+  return ACTION_PATTERN.test(pathname + search);
+}
+
 export function normalizeUrl(href, base) {
   let url;
   try {
@@ -82,8 +90,11 @@ export async function crawl({
     return turn;
   };
 
+  const aborted = new Promise((resolve) => signal?.addEventListener('abort', resolve, { once: true }));
+
   async function captureOne(url) {
-    await waitTurn();
+    if (signal?.aborted) return null;
+    await Promise.race([waitTurn(), aborted]);
     if (signal?.aborted) return null;
     try {
       return { page: await capturePage(url, signal) };
@@ -101,6 +112,10 @@ export async function crawl({
         const key = urlKey(url);
         if (seen.has(key) || isFileLink(url) || !inScope(url, start.url, options.scope)) continue;
         seen.add(key);
+        if (isActionLink(url)) {
+          failures.push({ url, reason: 'skipped: looks like an action link' });
+          continue;
+        }
         urls.push(url);
         planned++;
       }
