@@ -6,7 +6,8 @@ const manifest = JSON.parse(readFileSync('extension/manifest.json', 'utf8'));
 describe('manifest', () => {
   it('is a Manifest V3 extension with the spec permissions', () => {
     expect(manifest.manifest_version).toBe(3);
-    expect(manifest.permissions).toEqual(['activeTab', 'scripting', 'tabs']);
+    expect(manifest.permissions).toEqual(['activeTab', 'scripting', 'tabs', 'storage']);
+    expect(manifest.minimum_chrome_version).toBe('112');
     expect(manifest.optional_host_permissions).toEqual(['<all_urls>']);
     expect(manifest.host_permissions).toBeUndefined();
     expect(manifest.background).toBeUndefined();

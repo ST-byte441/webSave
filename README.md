@@ -2,6 +2,8 @@
 
 A Chrome and Firefox extension that saves a web page, or a page plus the pages it links to, as one clean PDF. It works on pages you're logged into, because it reads them inside your own browser.
 
+With **Pick pages myself** you browse normally and press **Add this page** on each page you want. The popup lists them with a count (also shown on the toolbar icon), and **Save PDF** combines them into one document. The list lasts until you discard it or quit the browser.
+
 ## Develop
 
 ```bash
@@ -28,3 +30,10 @@ Run this in both Chrome and Firefox before calling a change done:
 6. Decline the all-sites permission prompt. **This page** still works, and **This page + linked pages** shows the access message.
 7. Open the popup on `chrome://extensions` or `about:addons`. Save is disabled with an explanation.
 8. Firefox only: if the popup closes when the permission prompt appears, grant access and press Save again. The second Save must work without a prompt.
+9. Choose **Pick pages myself**. Add 3 pages across 2 sites, closing and reopening the popup between adds. The list and the toolbar badge show 3.
+10. Press Add again on an already-added page. Add is disabled with "This page is already in the list".
+11. Remove the middle page with ✕. Count and badge show 2.
+12. **Save PDF (2 pages)**. The PDF has a table of contents and two sections in the order added. Reopen the popup: the 2 pages are still there.
+13. **Discard all…** → **Keep** leaves the list; **Discard all…** → **Discard** empties it and clears the badge.
+14. Add a page, quit and reopen the browser. The collection is empty.
+15. With all-sites access not yet granted, press **Save PDF**. The capture tab asks for access. **Continue without** shows the missing-images warning and still produces the PDF; **Allow access** shows the browser prompt and, once granted, the PDF has its images.
